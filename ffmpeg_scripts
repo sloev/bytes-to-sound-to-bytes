@@ -1,0 +1,20 @@
+ffmpeg -i processed_chaplin.wav
+
+ffmpeg -i input.mp3 -af silenceremove=1:0:-50dB output.mp3
+
+
+ffmpeg -i no_silence_auster.wav -f segment -segment_time 3.5 -c copy  -acodec pcm_s16le -ar 44100 debussy_parts/debussy%05d.wav
+
+for i in *wav; do ffmpeg -i "$i" -af 'afade=in:st=0:d=0.1,afade=out:st=3.38:d=0.1' "faded_$i.wav" ; done
+
+mv faded_* ../debussy_faded/
+
+for i in *.wav; do  rubberband -t 0.78 -p 1.0 "$i" "processed_$i.wav"; done
+
+mv processed_* ../debussy_2_sec/
+
+python ./audfprint.py new --dbase words.pklz ../debussy_2_sec/*.wav
+
+
+
+while true; do cat out.txt |python bytes_to_image.py; sleep 3; done
